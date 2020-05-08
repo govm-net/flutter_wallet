@@ -1,2 +1,10 @@
 # flutter_wallet
-wallet code by flutter(mobile/destop)
+
+govm wallet by flutter
+
+## Getting Started
+
+change android/key.properties
+
+android:flutter build apk --target-platform android-arm,android-arm64,android-x64 --split-per-abi
+destop: hover build windows

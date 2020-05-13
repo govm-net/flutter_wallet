@@ -50,6 +50,12 @@ class I18n implements WidgetsLocalizations {
   String get wDesc2 => "Wrong private key, must be a 64-bit hexadecimal string";
   /// "successful, please make sure you have remembered the private key"
   String get wSeccess => "successful, please make sure you have remembered the private key";
+  /// "remember the private key and login again"
+  String get wLogin => "remember the private key and login again";
+  /// "Log In"
+  String get login => "Log In";
+  /// "Reset wallet"
+  String get resetWallet => "Reset wallet";
   /// "Mnemonics separated by spaces"
   String get wDesc3 => "Mnemonics separated by spaces";
   /// "Wrong mnemonic"
@@ -66,6 +72,10 @@ class I18n implements WidgetsLocalizations {
   String get info => "Info";
   /// "OK"
   String get ok => "OK";
+  /// "Cancel"
+  String get cancel => "Cancel";
+  /// "Are you sure to reset the wallet?"
+  String get resetMsg => "Are you sure to reset the wallet?";
   /// "Transaction history"
   String get transHistory => "Transaction history";
   /// "Transfer In"
@@ -142,8 +152,8 @@ class I18n implements WidgetsLocalizations {
   String toChain(String id) => "To:Chain${id}";
   /// "Cross-chain transfer. Move coins to other chain, need wait 10 min after accepted."
   String get moveDesc => "Cross-chain transfer. Move coins to other chain, need wait 10 min after accepted.";
-  /// "Password"
-  String get password => "Password";
+  /// "Wallet Password"
+  String get password => "Wallet Password";
   /// "password wrong"
   String get ePassword => "password wrong";
 }
@@ -185,6 +195,15 @@ class _I18n_zh_CN extends I18n {
   /// "钱包切换成功，请确保已经记住私钥"
   @override
   String get wSeccess => "钱包切换成功，请确保已经记住私钥";
+  /// "记住私钥并重新登录"
+  @override
+  String get wLogin => "记住私钥并重新登录";
+  /// "登录"
+  @override
+  String get login => "登录";
+  /// "重置钱包"
+  @override
+  String get resetWallet => "重置钱包";
   /// "助记词以空格分隔"
   @override
   String get wDesc3 => "助记词以空格分隔";
@@ -209,6 +228,12 @@ class _I18n_zh_CN extends I18n {
   /// "确认"
   @override
   String get ok => "确认";
+  /// "取消"
+  @override
+  String get cancel => "取消";
+  /// "你确定要重置钱包吗？"
+  @override
+  String get resetMsg => "你确定要重置钱包吗？";
   /// "交易历史"
   @override
   String get transHistory => "交易历史";
@@ -323,9 +348,9 @@ class _I18n_zh_CN extends I18n {
   /// "跨链转账，被接收后还需要等10分钟"
   @override
   String get moveDesc => "跨链转账，被接收后还需要等10分钟";
-  /// "密码"
+  /// "钱包密码"
   @override
-  String get password => "密码";
+  String get password => "钱包密码";
   /// "密码错误"
   @override
   String get ePassword => "密码错误";

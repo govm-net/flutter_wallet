@@ -8,6 +8,9 @@
     "change":"Change",
     "wDesc2":"Wrong private key, must be a 64-bit hexadecimal string",
     "wSeccess":"successful, please make sure you have remembered the private key",
+    "wLogin":"remember the private key and login again",
+    "login":"Log In",
+    "resetWallet":"Reset wallet",
     "wDesc3":"Mnemonics separated by spaces",
     "wDesc4":"Wrong mnemonic",
     "loadWallet":"Load Wallet",
@@ -16,6 +19,8 @@
     "mnemonic":"Mnemonic",
     "info":"Info",
     "ok":"OK",
+    "cancel":"Cancel",
+    "resetMsg":"Are you sure to reset the wallet?",
     "transHistory":"Transaction history",
     "tranferIn":"Transfer In",
     "tranferOut":"Transfer Out",
@@ -54,6 +59,6 @@
     "fromChain":"From:Chain{id}",
     "toChain":"To:Chain{id}",
     "moveDesc":"Cross-chain transfer. Move coins to other chain, need wait 10 min after accepted.",
-    "password":"Password",
+    "password":"Wallet Password",
     "ePassword":"password wrong"
 }

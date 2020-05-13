@@ -1,13 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:govm/generated/i18n.dart';
 import 'package:govm/util/util.dart' as util;
-import 'package:govm/wallet/aes.dart';
 import 'package:govm/wallet/wallet.dart';
-import 'package:hex/hex.dart';
-import 'change_wallet.dart';
-import 'diag.dart';
+import 'change_wallet.dart' as wp;
 import 'qrcode.dart';
 
 var _balances = {1: 0};
@@ -20,69 +15,18 @@ class MyHomePage extends StatefulWidget {
 
   @override
   _MyHomePageState createState() {
-    // print("createState");
     return _MyHomePageState();
   }
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<T> showPasswordW<T>(BuildContext context, Uint8List aesPrivKey) {
-    TextEditingController _textFieldController = TextEditingController();
-    return showDialog(
-        context: context,
-        // barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text(I18n.of(context).password),
-            content: TextField(
-              controller: _textFieldController,
-              obscureText: true,
-              decoration: InputDecoration(hintText: "Password of wallet"),
-            ),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(20))),
-            actions: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  if (_textFieldController.text == '') {
-                    return;
-                  }
-                  _password = _textFieldController.text;
-                  if (aesPrivKey != null) {
-                    try {
-                      var privKey = decrypt(_password, aesPrivKey);
-                      wallet.formKey(HEX.encode(privKey));
-                    } catch (err) {
-                      myDiag(context, I18n.of(context).ePassword);
-                      return;
-                    }
-                  }
-                  Navigator.of(context).pop();
-                },
-                child: Text(I18n.of(context).ok),
-              )
-            ],
-          );
-        });
-  }
-
   @override
   void initState() {
     super.initState();
     if (_password != ''){
       return;
     }
-    wallet.load().then((Uint8List aesData) {
-      showPasswordW(context, aesData).then((bool) {
-        if (aesData == null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => NewWalletNavigation(_password)),
-          );
-        }
-      });
-    });
+
     wallet.setCallback((bool ok) {
       try {
         setState(() {});
@@ -235,8 +179,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return input.substring(0, length) + '...';
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
+    if (wallet.address != ''){
+      _getAccount();
+    }
     // _getAccount();
     Widget titleSection = new Container(
       decoration: BoxDecoration(
@@ -290,11 +239,13 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: new Icon(Icons.add_circle),
             onPressed: () {
               print("AppBar.action");
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => NewWalletNavigation(_password)),
-              );
+              Navigator.of(context).pushNamed('newWallet').then((value){
+                if(value == null || value.toString() == ''){
+                  return;
+                }
+                wallet.formKey(value.toString());
+                wallet.save(wp.password);
+              });
             },
           ),
         ],

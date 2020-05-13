@@ -8,6 +8,9 @@
     "change":"换一个",
     "wDesc2":"错误私钥,必须是64位16进制的字符串",
     "wSeccess":"钱包切换成功，请确保已经记住私钥",
+    "wLogin":"记住私钥并重新登录",
+    "login":"登录",
+    "resetWallet":"重置钱包",
     "wDesc3":"助记词以空格分隔",
     "wDesc4":"错误的助记词",
     "loadWallet":"导入钱包",
@@ -16,6 +19,8 @@
     "mnemonic":"助记词",
     "info":"消息",
     "ok":"确认",
+    "cancel":"取消",
+    "resetMsg":"你确定要重置钱包吗？",
     "transHistory":"交易历史",
     "tranferIn":"转入",
     "tranferOut":"转出",
@@ -54,6 +59,6 @@
     "fromChain":"从链{id}转出",
     "toChain":"转到链{id}",
     "moveDesc":"跨链转账，被接收后还需要等10分钟",
-    "password":"密码",
+    "password":"钱包密码",
     "ePassword":"密码错误"
 }

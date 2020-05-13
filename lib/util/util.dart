@@ -3,10 +3,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 const core = 'e4a05b2b8a4de21d9e6f26e9d7992f7f33e89689f3015f3fc8a3a3278815e28c';
 
-String apiServer = 'http://govm.net';
+String apiServer = kIsWeb?'':'http://govm.net';
 String unit = 'tc';
 num apiVersion = 1;
 var allChains = [1, 2];

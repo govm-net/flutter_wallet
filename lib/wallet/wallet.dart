@@ -83,6 +83,18 @@ class Wallet {
     }
   }
 
+  reset(){
+    this.privKey = null;
+    this.address = '';
+    try {
+      _getLocalFile().then((File f) {
+        f.delete();
+      });
+    } catch (err) {
+      print("fail to save wallet");
+    }
+  }
+
   setCallback(Callback cb) {
     this.cbList.add(cb);
     // if(address != ""){

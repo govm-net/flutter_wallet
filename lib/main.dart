@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:govm/ui/change_wallet.dart';
 import 'ui/historyPage.dart';
 import 'ui/transactionPage.dart';
 import 'ui/setting.dart';
 import 'ui/home.dart';
+import 'ui/loginPage.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'generated/i18n.dart';
 
@@ -65,12 +68,19 @@ class BottomNavigationWidgetState extends State<BottomNavigationWidget> {
 
 
 class MyApp extends StatelessWidget {
+  final routes = <String,WidgetBuilder>{
+    "login":(context)=>LoginPage(),
+    "home":(context)=>BottomNavigationWidget(),
+    "newWallet":(context)=>NewWalletNavigation(),
+  };
+
   @override
   Widget build(BuildContext context) {
     final i18n = I18n.delegate;
     return new MaterialApp(
       title: 'GOVM',
-      home: new BottomNavigationWidget(),
+      home: kIsWeb?BottomNavigationWidget():LoginPage(),
+      routes:routes,
       localizationsDelegates: [
         i18n,
         GlobalMaterialLocalizations.delegate,

@@ -1,16 +1,15 @@
 import 'package:bitcoin_flutter/bitcoin_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:govm/generated/i18n.dart';
-import 'package:govm/wallet/wallet.dart';
+import 'package:govm/wallet/wallet.dart' as wallet;
 import 'package:hex/hex.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
 import 'diag.dart';
 
-class NewWalletNavigation extends StatelessWidget {
-  final String password;
-  NewWalletNavigation(this.password,{ Key key }):super(key: key);
+String password = 'govm_pwd';
 
+class NewWalletNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextEditingController _textEditingCtl1 = new TextEditingController();
@@ -19,27 +18,26 @@ class NewWalletNavigation extends StatelessWidget {
         HEX.encode(ECPair.makeRandom(compressed: true).privateKey);
     _textEditingCtl2.text = bip39.generateMnemonic();
     var private = Scaffold(
-      body: Column(
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                helperText: I18n.of(context).wDesc1,
-                labelStyle: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
-              ),
-              controller: _textEditingCtl1,
-              maxLines: 4,
+      body: Column(children: <Widget>[
+        TextField(
+          decoration: InputDecoration(
+            helperText: I18n.of(context).wDesc1,
+            labelStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
             ),
-            RaisedButton(
-              child: Text(I18n.of(context).change),
-              onPressed: () {
-                var privECC = ECPair.makeRandom(compressed: true);
-                _textEditingCtl1.text = HEX.encode(privECC.privateKey);
-              },
-            ),
-          ]),
+          ),
+          controller: _textEditingCtl1,
+          maxLines: 4,
+        ),
+        RaisedButton(
+          child: Text(I18n.of(context).change),
+          onPressed: () {
+            var privECC = ECPair.makeRandom(compressed: true);
+            _textEditingCtl1.text = HEX.encode(privECC.privateKey);
+          },
+        ),
+      ]),
       floatingActionButton: FloatingActionButton(
         tooltip: 'OK',
         child: Icon(Icons.check),
@@ -53,14 +51,15 @@ class NewWalletNavigation extends StatelessWidget {
             return;
           }
           try {
-            wallet.formKey(privKey);
-            wallet.save(password);
+            var w = new wallet.Wallet();
+            w.formKey(privKey);
           } catch (err) {
             myDiag(context, I18n.of(context).wDesc2);
             return;
           }
+
           myDiag(context, I18n.of(context).wSeccess).then((bool) {
-            Navigator.pop(context);
+            Navigator.pop(context, privKey);
           });
           print('success to change wallet');
         },
@@ -98,15 +97,17 @@ class NewWalletNavigation extends StatelessWidget {
           var seedKey = _textEditingCtl2.text;
           try {
             assert(seedKey.length > 15);
-            wallet.formSeed(seedKey);
-            wallet.save(password);
+            var w = new wallet.Wallet();
+            w.formSeed(seedKey);
+            seedKey = HEX.encode(w.privKey);
           } catch (err) {
             myDiag(context, I18n.of(context).wDesc4);
             return;
           }
           myDiag(context, I18n.of(context).wSeccess).then((bool) {
-            Navigator.pop(context);
+            Navigator.pop(context, seedKey);
           });
+
           // print('success to change wallet');
         },
       ), // This trailing comma makes auto-formatting nicer for build methods.
@@ -129,32 +130,34 @@ class NewWalletNavigation extends StatelessWidget {
           children: <Widget>[
             private,
             seed,
-            Column(children: <Widget>[
-              Text(
-                I18n.of(context).walletWarning1,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+            Column(
+              children: <Widget>[
+                Text(
+                  I18n.of(context).walletWarning1,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                I18n.of(context).walletWarning3,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                Text(
+                  I18n.of(context).walletWarning3,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                I18n.of(context).walletWarning2,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                Text(
+                  I18n.of(context).walletWarning2,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                I18n.of(context).walletWarning4,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                Text(
+                  I18n.of(context).walletWarning4,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],),
+              ],
+            ),
           ],
         ),
       ),

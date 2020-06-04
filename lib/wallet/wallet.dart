@@ -62,13 +62,9 @@ class Wallet {
       File file = await _getLocalFile();
       var hexKey = await file.readAsString();
       if (hexKey != "") {
-        // formKey(hexKey);
         return HEX.decode(hexKey);
       }
     } catch (err) {}
-    for (var cb in cbList) {
-      cb(false);
-    }
     return null;
   }
 
@@ -97,9 +93,6 @@ class Wallet {
 
   setCallback(Callback cb) {
     this.cbList.add(cb);
-    // if(address != ""){
-    //   cb(true);
-    // }
   }
 
   Uint8List doSign(Uint8List message) {

@@ -5,6 +5,7 @@ import 'encode.dart';
 
 const _timeOffset = 600000;
 const _addressLen = 24;
+const defaultEnergy = 1000000;
 
 class Transaction {
   BigInt time; //8bit
@@ -18,13 +19,14 @@ class Transaction {
   Uint8List sign; //65bit?
   Uint8List key; //32bit
 
-  Transaction(String user, String chain, num cost, {num energy = 1000000}) {
+  Transaction(String user, String chain, num cost, {num energy = defaultEnergy}) {
     this.time =
         BigInt.from(DateTime.now().millisecondsSinceEpoch - _timeOffset);
     this.user = HEX.decode(user);
     this.chain = BigInt.parse(chain);
     this.cost = BigInt.from(cost);
     this.energy = BigInt.from(energy);
+    this.data = new Uint8List(0);
     assert(this.user.length == _addressLen);
     assert(energy > 1000);
     assert(this.chain > BigInt.zero);
@@ -64,7 +66,7 @@ class Transaction {
   setSign(Uint8List sign) {
     this.sign = sign;
     assert(sign.length > 30);
-    assert(this.data.length > 0);
+    // assert(this.data.length > 0);
   }
 
   opsTransfer(String peer) {
@@ -77,5 +79,15 @@ class Transaction {
     this.ops = 1;
     var big = BigInt.parse(dstChain);
     data = bigInt2Bytes(big, len: 8);
+  }
+
+  opsVote(String peer) {
+    this.ops = 8;
+    data = HEX.decode(peer);
+    assert(data.length == _addressLen);
+  }
+
+  opsUnvote() {
+    this.ops = 9;
   }
 }

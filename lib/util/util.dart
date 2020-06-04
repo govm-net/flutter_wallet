@@ -5,15 +5,19 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
-const core = 'e4a05b2b8a4de21d9e6f26e9d7992f7f33e89689f3015f3fc8a3a3278815e28c';
+import 'encode.dart';
 
-String apiServer = kIsWeb?'':'http://govm.net';
-String unit = 'tc';
+const core = 'ff0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f';
+
+// String apiServer = kIsWeb ? '' : 'http://govm.net';
+String apiServer = kIsWeb ? '' : 'http://govm.top:9090';
+String unit = 'govm';
 num apiVersion = 1;
 var allChains = [1, 2];
 Map<String, _UpdateItem> accounts = {};
-Map<String, _UpdateItem> locks = {};
+Map<String, _UpdateItem> votes = {};
 const _updateLimit = 10000;
+const voteCost = 1000000000;
 
 class _UpdateItem {
   int lastTime;
@@ -21,12 +25,13 @@ class _UpdateItem {
   _UpdateItem(this.lastTime, this.balance);
 }
 
-num getBaseOfUnit({String u = 'tc'}) {
+num getBaseOfUnit({String u = 'govm'}) {
   switch (u) {
     case 'tc':
       return 1000000000000;
       break;
     case 't9':
+    case 'govm':
       return 1000000000;
       break;
     case 't6':
@@ -77,58 +82,23 @@ Future<num> getAccount(num chain, String address) async {
   return result;
 }
 
-Future<num> getAccountLocked(num chain, String address) async {
+Future<num> getAccountVotes(num chain, String address) async {
   var now = DateTime.now().millisecondsSinceEpoch;
-  var have = locks['$chain.$address'];
+  var have = votes['$chain.$address'];
   if (have != null) {
     if (have.lastTime + _updateLimit > now) {
       print('hit cache(locked)');
       return have.balance;
     }
   }
-  var baseUrl =
-      '$apiServer/api/v$apiVersion/$chain/data?key=$address&app_name=$core&is_db_data=true';
-  var lockUrl = baseUrl + '&struct_name=statCoinLock';
-  var unlockUrl = baseUrl + '&struct_name=statCoinUnlock';
-  var httpClient = new HttpClient();
-  // print("getAccountLocked:$lockUrl");
-  num result = 0;
-  try {
-    var request = await httpClient.getUrl(Uri.parse(lockUrl));
-    var response = await request.close();
-    if (response.statusCode == HttpStatus.ok) {
-      var json = await response.transform(utf8.decoder).join();
-      var data = jsonDecode(json);
-      String val = data['value'];
-      // print("locked:"+data.toString());
-      if (val != null && val != '') {
-        var lock = int.parse(val, radix: 16);
-        int unlock = 0;
-        request = await httpClient.getUrl(Uri.parse(unlockUrl));
-        response = await request.close();
-        if (response.statusCode == HttpStatus.ok) {
-          var json = await response.transform(utf8.decoder).join();
-          var data = jsonDecode(json);
-          String val = data['value'];
-          // print("locked:"+data.toString());
-          if (val != null && val != '') {
-            unlock = int.parse(val, radix: 16);
-            // print('getAccountLocked:$chain,$address,$result');
-          }
-        }
-        result = lock - unlock;
-        locks['$chain.$address'] =
-            _UpdateItem(DateTime.now().millisecondsSinceEpoch, result);
-        // print('getAccountLocked:$chain,$address,$result');
-      }
-    } else {
-      print('Error get:\nHttp status ${response.statusCode}');
+  
+  return getDBData(chain, "dbVote", address).then((List<int> value) {
+    if (value.length < 32){
+      return 0;
     }
-  } catch (exception) {
-    print('Failed get,$lockUrl,' + exception.toString());
-  }
-
-  return result;
+    var v = bytes2BigInt(value.sublist(24, 32));
+    return v.toInt();
+  }); 
 }
 
 Future<String> sendTransaction(String chain, String key, Uint8List data) async {
@@ -147,20 +117,19 @@ Future<String> sendTransaction(String chain, String key, Uint8List data) async {
     return key;
   }
   String responseBody = await response.transform(utf8.decoder).join();
-  print("postTrans--${response.statusCode}----$responseBody");
-  assert(response.statusCode == HttpStatus.ok);
-  return '';
+  throw "$responseBody";
+  // throw 'Out of llamas!';
+  // assert(response.statusCode == HttpStatus.ok);
+  // return '$responseBody';
 }
 
 Future<List<int>> getDBData(num chain, String structName, String key) async {
-  var baseUrl =
-      '$apiServer/api/v$apiVersion/$chain/data?key=$key&app_name=$core&is_db_data=true';
+  var baseUrl = '$apiServer/api/v$apiVersion/$chain/data?key=$key&app_name=$core&is_db_data=true';
   baseUrl += '&raw=true&struct_name=$structName';
   try {
     Response<List<int>> rs = await Dio().get<List<int>>(
       baseUrl,
-      options: Options(
-          responseType: ResponseType.bytes), 
+      options: Options(responseType: ResponseType.bytes),
     );
     if (rs.statusCode == HttpStatus.ok) {
       return rs.data;
@@ -171,4 +140,3 @@ Future<List<int>> getDBData(num chain, String structName, String key) async {
 
   return null;
 }
-

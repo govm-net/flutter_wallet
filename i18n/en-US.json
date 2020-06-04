@@ -60,5 +60,10 @@
     "toChain":"To:Chain{id}",
     "moveDesc":"Cross-chain transfer. Move coins to other chain, need wait 10 min after accepted.",
     "password":"Wallet Password",
-    "ePassword":"password wrong"
+    "ePassword":"password wrong",
+    "vote":"vote",
+    "cancelVote":"Cancel Vote",
+    "votes":"votes",
+    "admin":"admin",
+    "end":"end"
 }

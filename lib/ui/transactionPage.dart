@@ -25,7 +25,7 @@ class TransactionWidgetState extends State<TransactionWidget> {
           title: Text(I18n.of(context).transaction),
         ),
         body: DefaultTabController(
-          length: 2,
+          length: 4,
           child: Column(
             children: <Widget>[
               Container(
@@ -36,6 +36,8 @@ class TransactionWidgetState extends State<TransactionWidget> {
                     tabs: <Widget>[
                       Tab(text: I18n.of(context).transfer),
                       Tab(text: I18n.of(context).move),
+                      Tab(text: I18n.of(context).vote),
+                      Tab(text: I18n.of(context).cancelVote),
                     ],
                   )),
               Expanded(
@@ -44,6 +46,8 @@ class TransactionWidgetState extends State<TransactionWidget> {
                     children: <Widget>[
                       getTransferWidget(),
                       getMoveWidget(),
+                      getVoteWidget(),
+                      cancelVoteWidget(),
                     ],
                   ))
             ],
@@ -151,7 +155,7 @@ class TransactionWidgetState extends State<TransactionWidget> {
                   return;
                 }
                 var have = util.accounts['$_chain.${wallet.address}'];
-                if(have == null || have.balance == null || cost.floor() > have.balance){
+                if(have == null || have.balance == null || cost.floor()+defaultEnergy > have.balance){
                   myDiag(context, I18n.of(context).noMoney);
                   costController.text = '';
                   return;
@@ -170,6 +174,8 @@ class TransactionWidgetState extends State<TransactionWidget> {
                   myDiag(context, 'success:$rst');
                   peerController.text = '';
                   costController.text = '';
+                }).catchError((err){
+                  myDiag(context, 'fail:$err', title: 'error');
                 });
               } catch (err) {
                 myDiag(context, 'fail:$err', title: 'error');
@@ -271,7 +277,7 @@ class TransactionWidgetState extends State<TransactionWidget> {
                   return;
                 }
                 var have = util.accounts['$_chain.${wallet.address}'];
-                if(have == null || have.balance == null || cost > have.balance){
+                if(have == null || have.balance == null || cost+defaultEnergy > have.balance){
                   myDiag(context, I18n.of(context).noMoney);
                   costController.text = '';
                   return;
@@ -284,12 +290,12 @@ class TransactionWidgetState extends State<TransactionWidget> {
                 trans.setSign(sign);
                 var out = trans.output();
                 var transKey = Wallet.doGovmHash(out);
-                util
-                    .sendTransaction(_chain, HEX.encode(transKey), out)
+                util.sendTransaction(_chain, HEX.encode(transKey), out)
                     .then((String rst) {
-                  // print('send result:$rst');
                   myDiag(context, 'success:$rst');
                   costController.text = '';
+                }).catchError((err){
+                  myDiag(context, 'fail:$err', title: 'error');
                 });
               } catch (err) {
                 myDiag(context, 'fail:$err', title: 'error');
@@ -317,4 +323,209 @@ class TransactionWidgetState extends State<TransactionWidget> {
           ),
         )));
   }
+
+  
+  Widget getVoteWidget() {
+    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+    TextEditingController peerController = new TextEditingController();
+    TextEditingController votesController = new TextEditingController();
+    peerController.text = "01ccaf415a3a6dc8964bf935a1f40e55654a4243ae99c709";
+    var _chains = util.allChains.map((num i) {
+      return DropdownMenuItem(
+        value: '$i',
+        child: Text(I18n.of(context).chainID('$i')),
+      );
+    }).toList();
+
+    var chainW = DropdownButton(
+      isExpanded: true,
+      value: _chain,
+      items: _chains,
+      onChanged: (String selected) {
+        _chain = selected;
+        setState(() {});
+      },
+    );
+    var peerW = new TextFormField(
+      keyboardType: TextInputType.text,
+      controller: peerController,
+      maxLines: 2,
+      decoration: new InputDecoration(
+        labelText: I18n.of(context).peerAddr,
+        // prefixIcon: Icon(Icons.person),
+        suffixIcon: IconButton(
+          onPressed: () {
+            _scan().then((String val) {
+              if (val.startsWith('govm')) {
+                val = val.substring(5);
+              }
+              peerController.text = val;
+            });
+          },
+          icon: Image.asset(
+            'images/scanning.jpg',
+            height: 20.0,
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+      validator: (val) {
+        try {
+          var dec = HEX.decode(val);
+          if (dec.length != 24) {
+            return I18n.of(context).addrError;
+          }
+        } catch (err) {
+          return I18n.of(context).addrError;
+        }
+        return null;
+      },
+    );
+
+    var costW = new TextFormField(
+      keyboardType: TextInputType.number,
+      controller: votesController,
+      decoration: new InputDecoration(labelText: 'Votes: 1govm per vote'),
+      // obscureText: true,
+      validator: (val) {
+        try {
+          var v = double.parse(val);
+          if (v < 0) {
+            return I18n.of(context).lessThan0;
+          }
+        } catch (err) {
+          return I18n.of(context).mustNum;
+        }
+        return null;
+      },
+    );
+    return Scaffold(
+        floatingActionButton: new FloatingActionButton(
+          onPressed: () {
+            var _form = _formKey.currentState;
+            if (_form.validate()) {
+              _form.save();
+              try {
+                var v = int.parse(votesController.text);
+                var cost = v * util.voteCost;
+                if (cost < 0) {
+                  myDiag(context, I18n.of(context).eCost+':${votesController.text}');
+                  return;
+                }
+                var have = util.accounts['$_chain.${wallet.address}'];
+                if(have == null || have.balance == null || cost+defaultEnergy > have.balance){
+                  myDiag(context, I18n.of(context).noMoney);
+                  votesController.text = '';
+                  return;
+                }
+                Transaction trans = new Transaction(wallet.address, _chain, cost);
+                trans.opsVote(peerController.text);
+                var data = trans.getSignData();
+                var sign = wallet.doSign(data);
+                trans.setSign(sign);
+                var out = trans.output();
+                var transKey = Wallet.doGovmHash(out);
+                util.sendTransaction(_chain, HEX.encode(transKey), out)
+                    .then((String rst) {
+                  myDiag(context, 'success:$rst');
+                  votesController.text = '';
+                }).catchError((err){
+                  myDiag(context, 'fail:$err', title: 'error');
+                });
+              } catch (err) {
+                print("fail to vote--$err");
+                myDiag(context, 'fail:$err', title: 'error');
+              }
+            }
+          },
+          child: new Text(I18n.of(context).submit),
+        ),
+        body: Scrollbar(
+            child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: new Form(
+              key: _formKey,
+              child: new Column(
+                children: <Widget>[
+                  chainW,
+                  peerW,
+                  costW,
+                ],
+              ),
+            ),
+          ),
+        )));
+  }
+
+
+  Widget cancelVoteWidget() {
+    GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
+    var _chains = util.allChains.map((num i) {
+      return DropdownMenuItem(
+        value: '$i',
+        child: Text(I18n.of(context).chainID('$i')),
+      );
+    }).toList();
+
+    var chainW = DropdownButton(
+      isExpanded: true,
+      value: _chain,
+      items: _chains,
+      onChanged: (String selected) {
+        _chain = selected;
+        setState(() {});
+      },
+    );
+    
+    return Scaffold(
+        floatingActionButton: new FloatingActionButton(
+          onPressed: () {
+            var _form = _formKey.currentState;
+            if (_form.validate()) {
+              _form.save();
+              try {
+                var have = util.accounts['$_chain.${wallet.address}'];
+                if(have == null || have.balance == null || defaultEnergy > have.balance){
+                  myDiag(context, I18n.of(context).noMoney);
+                  return; 
+                }
+                Transaction trans =
+                    new Transaction(wallet.address, _chain, 0);
+                trans.opsUnvote();
+                var data = trans.getSignData();
+                var sign = wallet.doSign(data);
+                trans.setSign(sign);
+                var out = trans.output();
+                var transKey = Wallet.doGovmHash(out);
+                util.sendTransaction(_chain, HEX.encode(transKey), out)
+                    .then((String rst) {
+                  myDiag(context, 'success:$rst');
+                }).catchError((err){
+                  myDiag(context, 'fail:$err', title: 'error');
+                });
+              } catch (err) {
+                myDiag(context, 'fail:$err', title: 'error');
+              }
+            }
+          },
+          child: new Text(I18n.of(context).submit),
+        ),
+        body: Scrollbar(
+            child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: new Form(
+              key: _formKey,
+              child: new Column(
+                children: <Widget>[
+                  Text("cancel votes and deposit refund"),
+                  chainW,
+                ],
+              ),
+            ),
+          ),
+        )));
+  }
+
 }

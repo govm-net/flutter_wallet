@@ -60,5 +60,10 @@
     "toChain":"转到链{id}",
     "moveDesc":"跨链转账，被接收后还需要等10分钟",
     "password":"钱包密码",
-    "ePassword":"密码错误"
+    "ePassword":"密码错误",
+    "vote":"投票",
+    "cancelVote":"取消投票",
+    "votes":"选票",
+    "admin":"管理员",
+    "end":"end"
 }

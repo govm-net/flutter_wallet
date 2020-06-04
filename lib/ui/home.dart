@@ -6,9 +6,9 @@ import 'change_wallet.dart' as wp;
 import 'qrcode.dart';
 
 var _balances = {1: 0};
-var _locks = {1: 0};
+var _votes = {1: 0};
 var _password = '';
-String _totalBalance = '0 tc';
+String _totalBalance = '0 govm';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -23,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    if (_password != ''){
+    if (_password != '') {
       return;
     }
 
@@ -45,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
         value = input / 1000000000000;
         break;
       case 't9':
+      case 'govm':
         value = input / 1000000000;
         break;
       case 't6':
@@ -62,8 +63,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _showBalance() {
     var total = 0;
     for (var i in util.allChains) {
-      total += _balances[i];
-      total += _locks[i];
+      if (_balances[i] != null) {
+        total += _balances[i];
+      }
+      if (_votes[i] != null) {
+        total += _votes[i];
+      }
     }
     _totalBalance = _valWithUnit(total);
     setState(() {});
@@ -78,22 +83,24 @@ class _MyHomePageState extends State<MyHomePage> {
         _balances[i] = val;
         _showBalance();
       });
-      util.getAccountLocked(i, wallet.address).then((num val) {
-        if (_locks[i] == val) {
+      util.getAccountVotes(i, wallet.address).then((num val) {
+        print('$val vote');
+        if (_votes[i] == val) {
           return;
         }
-        _locks[i] = val;
+        _votes[i] = val;
         _showBalance();
       });
     }
   }
 
-  Widget _chainInfo(num chain, num balance, num locked) {
+  Widget _chainInfo(num chain, num balance, num votes) {
     Color bg = Colors.cyan[100];
     if (chain % 2 == 0) {
       bg = Colors.cyan[50];
     }
-    if (locked == null || locked <= 0) {
+    if (votes == null || votes <= 0) {
+      print("error vote,$votes");
       return new Container(
         padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
@@ -121,6 +128,8 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }
+    votes /= util.voteCost;
+    votes = votes.toInt();
     var balanceW = new Expanded(
       child: new Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -144,13 +153,13 @@ class _MyHomePageState extends State<MyHomePage> {
         new Container(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: new Text(
-            I18n.of(context).freeze,
+            I18n.of(context).votes,
             style: new TextStyle(
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
-        new Text(_valWithUnit(locked)),
+        new Text('$votes'),
       ],
     );
     return new Container(
@@ -179,11 +188,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return input.substring(0, length) + '...';
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
-    if (wallet.address != ''){
+    if (wallet.address != '') {
       _getAccount();
     }
     // _getAccount();
@@ -239,8 +246,8 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: new Icon(Icons.add_circle),
             onPressed: () {
               print("AppBar.action");
-              Navigator.of(context).pushNamed('newWallet').then((value){
-                if(value == null || value.toString() == ''){
+              Navigator.of(context).pushNamed('newWallet').then((value) {
+                if (value == null || value.toString() == '') {
                   return;
                 }
                 wallet.formKey(value.toString());
@@ -259,7 +266,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(''),
             Column(
                 children: util.allChains.map((num i) {
-              return _chainInfo(i, _balances[i], _locks[i]);
+              return _chainInfo(i, _balances[i], _votes[i]);
               // return _chainInfo(i, _balances[i], 100);
             }).toList()),
           ],

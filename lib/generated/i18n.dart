@@ -156,6 +156,16 @@ class I18n implements WidgetsLocalizations {
   String get password => "Wallet Password";
   /// "password wrong"
   String get ePassword => "password wrong";
+  /// "vote"
+  String get vote => "vote";
+  /// "Cancel Vote"
+  String get cancelVote => "Cancel Vote";
+  /// "votes"
+  String get votes => "votes";
+  /// "admin"
+  String get admin => "admin";
+  /// "end"
+  String get end => "end";
 }
 
 class _I18n_en_US extends I18n {
@@ -354,6 +364,21 @@ class _I18n_zh_CN extends I18n {
   /// "密码错误"
   @override
   String get ePassword => "密码错误";
+  /// "投票"
+  @override
+  String get vote => "投票";
+  /// "取消投票"
+  @override
+  String get cancelVote => "取消投票";
+  /// "选票"
+  @override
+  String get votes => "选票";
+  /// "管理员"
+  @override
+  String get admin => "管理员";
+  /// "end"
+  @override
+  String get end => "end";
 
   @override
   TextDirection get textDirection => TextDirection.ltr;

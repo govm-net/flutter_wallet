@@ -20,9 +20,9 @@ class SettingPageWidgetState extends State<SettingPageWidget> {
   Widget build(BuildContext context) {
     try {
       PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
-        _version = packageInfo.version;
-        _buildNumber = packageInfo.buildNumber;
-        setState(() {});
+        _version = packageInfo.version==""?"0.1.0":packageInfo.version;
+        _buildNumber = packageInfo.buildNumber==""?"1":packageInfo.buildNumber;
+        setState(() {}); 
       });
     } catch (err) {}
 
